@@ -1,0 +1,27 @@
+{
+  "name": "e-commerce-api",
+  "version": "1.0.0",
+  "description": "E-Commerce Inventory API is a backend service for managing products, categories, inventory, shopping carts, and orders with secure payment integration. It includes admin controls, Swagger documentation, and database migrations for a complete, scalable e-commerce foundation.",
+  "main": "src/server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Varun0856/e-commerce-api.git"
+  },
+  "author": "Varun Kulkarni",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Varun0856/e-commerce-api/issues"
+  },
+  "homepage": "https://github.com/Varun0856/e-commerce-api#readme",
+  "devDependencies": {
+    "nodemon": "^3.1.10",
+    "prisma": "^6.18.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.18.0",
+    "dotenv": "^17.2.3"
+  }
+}
