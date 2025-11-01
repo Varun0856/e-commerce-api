@@ -22,7 +22,7 @@ async function startServer() {
   }
 }
 
-process.on('SIGINT', async() => {
+process.on('SIGINT', async () => {
   await prisma.$disconnect();
   process.exit(0);
 });
@@ -32,4 +32,4 @@ startServer();
 process.on('unhandledRejection', (error) => {
   logger.error(`Unhandled Rejection: ${error.message}`);
   process.exit(1);
-})
+});
