@@ -3,8 +3,11 @@
   "version": "1.0.0",
   "description": "E-Commerce Inventory API is a backend service for managing products, categories, inventory, shopping carts, and orders with secure payment integration. It includes admin controls, Swagger documentation, and database migrations for a complete, scalable e-commerce foundation.",
   "main": "src/server.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js"
   },
   "repository": {
     "type": "git",
@@ -22,6 +25,9 @@
   },
   "dependencies": {
     "@prisma/client": "^6.18.0",
-    "dotenv": "^17.2.3"
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "winston": "^3.18.3"
   }
 }
