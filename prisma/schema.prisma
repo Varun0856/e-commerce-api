@@ -27,16 +27,17 @@ enum OrderStatus {
 }
 
 model User {
-  id          Int      @id @default(autoincrement())
-  fullname    String
-  email       String   @unique
-  phonenumber String   @unique
-  password    String
-  role        Role     @default(USER)
-  cart        Cart?
-  orders      Order[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           Int      @id @default(autoincrement())
+  fullname     String
+  email        String   @unique
+  phonenumber  String   @unique
+  password     String
+  role         Role     @default(USER)
+  refreshToken String?
+  cart         Cart?
+  orders       Order[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model Product {
