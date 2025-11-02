@@ -90,6 +90,59 @@ const registerUser = asyncHandler(async (req, res) => {
   );
 })
 
-export { refreshAccessToken, registerUser };
+const loginUser = asyncHandler(async (req, res) => {
+  const { email, phonenumber, password } = req.body;
+  if (!(email || phonenumber)) {
+    throw new ApiError(400, "email or phonenumber is required");
+  }
+
+  if (!password) {
+    throw new ApiError(400, "Missing password");
+  }
+
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { email: email },
+        { phonenumber: phonenumber },
+      ],
+    },
+    select: {
+      id: true,
+      password: true,
+      refreshToken: true,
+    },
+  });
+
+  if (!user) {
+    throw new ApiError(404, "User does not exist");
+  };
+
+  const isPassword = await bcrypt.compare(password, user.password);
+  if (!isPassword) {
+    throw new ApiError(401, "Invalid credentials");
+  }
+  const accessToken = generateAccessToken(user.id);
+  const refreshToken = generateRefreshToken(user.id);
+
+  const updatedUser = await prisma.user.update({
+    data: {
+      refreshToken: refreshToken,
+    },
+    where: {
+      email: email,
+    },
+    select: {
+      id: true,
+      fullname: true,
+      email: true,
+      phonenumber: true,
+    },
+  });
+
+  res.status(200).cookie("accessToken", accessToken, { httpOnly: true, secure: false }).cookie("refreshToken", refreshToken, { httpOnly: true, secure: false }).json(new ApiResponse(200, { user: updatedUser }, "Login Successful"));
+})
+
+export { refreshAccessToken, registerUser, loginUser };
 
 
