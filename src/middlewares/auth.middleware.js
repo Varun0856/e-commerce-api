@@ -1,7 +1,7 @@
 import prisma from '../database/prisma.js'
 import { ApiError } from "../utils/ApiError.js"
 import { asyncHandler } from "../utils/AsyncHandler.js"
-import { veirfyAccessToken, verifyAccessToken } from "../utils/tokenUtils.js"
+import { verifyAccessToken } from "../utils/tokenUtils.js"
 
 export const verifyJWT = asyncHandler(async (req, _, next) => {
   const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer", "");
@@ -14,7 +14,7 @@ export const verifyJWT = asyncHandler(async (req, _, next) => {
     throw new ApiError(401, "Invalid or expired access token")
   }
 
-  const user = prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: { id: decodedToken.userId }
   });
 
