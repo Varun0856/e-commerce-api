@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 
-export function errorHandler(err, req, res, next) {
+const errorHandler = (err, req, res, next) => {
   console.error(err);
 
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
@@ -24,3 +24,5 @@ export function errorHandler(err, req, res, next) {
   // Unknown or generic error
   return res.status(500).json({ error: "Internal Server Error" });
 }
+
+export default errorHandler;
