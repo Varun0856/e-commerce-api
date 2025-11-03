@@ -122,7 +122,7 @@ const loginUser = asyncHandler(async (req, res) => {
   if (!isPassword) {
     throw new ApiError(401, "Invalid credentials");
   }
-  const accessToken = generateAccessToken(user.id);
+  const accessToken = generateAccessToken(user.id, user.role);
   const refreshToken = generateRefreshToken(user.id);
 
   const updatedUser = await prisma.user.update({
@@ -143,6 +143,27 @@ const loginUser = asyncHandler(async (req, res) => {
   res.status(200).cookie("accessToken", accessToken, { httpOnly: true, secure: false }).cookie("refreshToken", refreshToken, { httpOnly: true, secure: false }).json(new ApiResponse(200, { user: updatedUser }, "Login Successful"));
 })
 
-export { refreshAccessToken, registerUser, loginUser };
+const logoutUser = asyncHandler(async (req, res) => {
+  await prisma.user.update({
+    where: {
+      id: req.user.id,
+    },
+    data: {
+      refreshToken: null,
+    }
+  })
+
+  return res.status(200).clearCookie("accessToken", {
+    httpOnly: true,
+    secure: false
+  }).clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: false
+  }).json(
+    new ApiResponse(200, {}, "User logged out successfully")
+  );
+})
+
+export { refreshAccessToken, registerUser, loginUser, logoutUser };
 
 
