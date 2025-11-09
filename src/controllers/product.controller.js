@@ -14,30 +14,23 @@ const registerProduct = asyncHandler(async (req, res) => {
   const normalizedName = name.trim().toLowerCase();
   const existingProduct = await prisma.product.findFirst({
     where: {
-      name: normalizedName
+      name: {
+        equals: normalizedName,
+        mode: "insensitive",
+      }
     }
   });
   if (existingProduct) {
-    const updatedProduct = await prisma.product.update({
-      data: {
-        stock: stock + existingProduct.stock,
-      },
-      where: {
-        id: existingProduct.id,
-      }
-    });
-    return res.status(201).json(
-      new ApiResponse(201, updatedProduct.stock, "Product already exists, Stock increased")
-    )
+    throw new ApiError(409, "A product with that name already exists");
   }
 
   const newProduct = await prisma.product.create({
     data: {
-      name,
-      description,
+      name: name.trim(),
+      description: description.trim(),
       price,
       stock,
-      category,
+      category: category.trim()
     }
   });
 
@@ -53,6 +46,9 @@ const getProducts = asyncHandler(async (req, res) => {
   const skip = (pageNumber - 1) * limitNumber;
   const take = limitNumber
   const products = await prisma.product.findMany({
+    where: {
+      isAvailable: true,
+    },
     skip,
     take
   });
@@ -65,4 +61,44 @@ const getProducts = asyncHandler(async (req, res) => {
 
 })
 
-export { registerProduct, getProducts };
+const getProductById = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const product = await prisma.product.findFirst({
+    where: {
+      id: Number(id),
+    }
+  });
+
+  if (!product || !product.isAvailable) {
+    throw new ApiError(404, "No product found");
+  }
+
+  return res.status(200).json(
+    new ApiResponse(200, product, "Product fetched successfully")
+  )
+});
+
+const updateProduct = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { name, description, price, stock, category, isAvailable } = req.body;
+  const updatedProduct = await prisma.product.update({
+    data: {
+      ...(name && { name: name.trim() }),
+      ...(description && { description: description.trim() }),
+      price: price,
+      stock,
+      ...(category && { category: category.trim() }),
+      isAvailable,
+    },
+    where: {
+      id: Number(id),
+    },
+  });
+
+  return res.status(200).json(
+    new ApiResponse(200, updatedProduct, "Product updated successfully")
+  );
+})
+
+
+export { registerProduct, getProducts, getProductById, updateProduct };
