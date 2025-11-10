@@ -22,6 +22,8 @@ const addToCart = asyncHandler(async (req, res) => {
 
   const { productId, quantity } = req.body;
 
+  if (quantity <= 0) throw new ApiError(400, "Quantity must be greater than zero");
+
   const product = await prisma.product.findUnique({
     where: {
       id: Number(productId),
@@ -56,8 +58,22 @@ const addToCart = asyncHandler(async (req, res) => {
     })
   }
 
+  const updatedCart = await prisma.cart.findFirst({
+    where: {
+      id: Number(cart.id),
+    },
+    include: {
+      items: {
+        include: {
+          product: true,
+        },
+      },
+    },
+
+  });
+
   return res.status(200).json(
-    new ApiResponse(200, cartItem, "Product added to cart successfully")
+    new ApiResponse(200, updatedCart, "Product added to cart successfully")
   )
 })
 
@@ -75,6 +91,13 @@ const getCart = asyncHandler(async (req, res) => {
       },
     },
   });
+
+  if (!cart) {
+    return res.status(200).json(
+      new ApiResponse(200, { items: [] }, "Cart is empty")
+    );
+  }
+
   return res.status(200).json(
     new ApiResponse(200, cart, "Cart fetched successfully")
   );
@@ -84,6 +107,8 @@ const updateCartItem = asyncHandler(async (req, res) => {
   const { id } = req.user;
   const { productId } = req.params;
   const { quantity } = req.body;
+
+  if (quantity <= 0) throw new ApiError(400, "Quantity must be greater than zero");
 
   const product = await prisma.product.findUnique({
     where: {
@@ -110,17 +135,30 @@ const updateCartItem = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Cart item not found");
   }
 
-  const updatedCartItem = await prisma.cartItem.update({
+  await prisma.cartItem.update({
     where: {
       id: Number(cartItem.id),
     },
     data: {
       quantity: Number(quantity),
     },
-  })
+  });
+
+  const updatedCart = await prisma.cart.findFirst({
+    where: {
+      id: Number(cart.id),
+    },
+    include: {
+      items: {
+        include: {
+          product: true,
+        },
+      },
+    },
+  });
 
   return res.status(200).json(
-    new ApiResponse(200, updatedCartItem, "Cart item updated successfully")
+    new ApiResponse(200, updatedCart, "Cart updated successfully")
   );
 });
 
@@ -151,8 +189,21 @@ const removeFromCart = asyncHandler(async (req, res) => {
     },
   });
 
+  const updatedCart = await prisma.cart.findFirst({
+    where: {
+      id: Number(cart.id),
+    },
+    include: {
+      items: {
+        include: {
+          product: true,
+        },
+      },
+    },
+  })
+
   return res.status(200).json(
-    new ApiResponse(200, {}, "Item removed from cart successfully")
+    new ApiResponse(200, updatedCart, "Item removed from cart successfully")
   );
 })
 
