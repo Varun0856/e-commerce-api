@@ -3,6 +3,7 @@ import errorHandler from './middlewares/error.middleware.js'
 import cookieParser from 'cookie-parser'
 import authRouter from './routes/auth.route.js';
 import productRouter from './routes/product.route.js';
+import cartRouter from './routes/cart.route.js';
 const app = express();
 
 
@@ -26,5 +27,6 @@ app.get('/', (req, res) => {
 
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/product', productRouter);
+app.use('/api/v1/cart', cartRouter);
 
 export default app;
