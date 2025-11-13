@@ -58,4 +58,59 @@ const createOrder = asyncHandler(async (req, res) => {
   );
 });
 
-export { createOrder };
+const getOrders = asyncHandler(async (req, res) => {
+  const { id } = req.user;
+  const userOrders = await prisma.order.findMany({
+    where: {
+      userId: Number(id),
+    },
+    include: {
+      items: {
+        include: {
+          product: true
+        },
+      },
+    },
+  });
+
+  if (!userOrders || userOrders.length === 0) {
+    throw new ApiResponse(200, [], "No orders found for this user")
+  }
+
+  return res.status(200).json(
+    new ApiResponse(200, userOrders, "User orders retrieved successfully")
+  )
+})
+
+const getOrderById = asyncHandler(async (req, res) => {
+  const { id } = req.user;
+  const { orderId } = req.params;
+
+  const userOrder = await prisma.order.findUnique({
+    where: {
+      id: Number(orderId),
+    },
+    include: {
+      items: {
+        include: {
+          product: true,
+        },
+      },
+    },
+  });
+  if (!userOrder) {
+    throw new ApiError(404, "Order not found");
+  }
+
+  if (userOrder.userId !== id) {
+    throw new ApiError(403, "Unauthrozied request");
+  }
+
+
+
+  return res.status(200).json(
+    new ApiResponse(200, userOrder, "Order retrieved successfully")
+  )
+})
+
+export { createOrder, getOrders, getOrderById };
