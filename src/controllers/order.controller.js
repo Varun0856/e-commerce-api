@@ -36,7 +36,7 @@ const createOrder = asyncHandler(async (req, res) => {
     },
   });
 
-  const orderItems = await promise.all(
+  const orderItems = await Promise.all(
     cart.items.map((items) =>
       prisma.orderItem.create({
         data: {
@@ -50,7 +50,7 @@ const createOrder = asyncHandler(async (req, res) => {
   );
 
   await prisma.cartItem.deleteMany({
-    where: { cartid: cart.id },
+    where: { cartId: cart.id },
   });
 
   return res.status(201).json(
