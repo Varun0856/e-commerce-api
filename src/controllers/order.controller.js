@@ -28,6 +28,12 @@ const createOrder = asyncHandler(async (req, res) => {
     0
   );
 
+  for (const item of cart.items) {
+    if (item.product.stock < item.quantity) {
+      throw new ApiError(400, `Insufficient stock for ${item.product.name}`)
+    };
+  };
+
   const order = await prisma.order.create({
     data: {
       userId: Number(id),
@@ -46,6 +52,19 @@ const createOrder = asyncHandler(async (req, res) => {
           price: items.product.price,
         },
       }),
+    )
+  );
+
+  await Promise.all(
+    cart.items.map((item) =>
+      prisma.product.update({
+        where: { id: item.productId },
+        data: {
+          stock: {
+            decrement: item.quantity
+          }
+        }
+      })
     )
   );
 
@@ -74,7 +93,9 @@ const getOrders = asyncHandler(async (req, res) => {
   });
 
   if (!userOrders || userOrders.length === 0) {
-    throw new ApiResponse(200, [], "No orders found for this user")
+    return res.status(200).json(
+      new ApiResponse(200, [], "No orders found")
+    );
   }
 
   return res.status(200).json(
@@ -113,4 +134,45 @@ const getOrderById = asyncHandler(async (req, res) => {
   )
 })
 
-export { createOrder, getOrders, getOrderById };
+const updateOrderStatus = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+  const { status } = req.body;
+  const options = ['PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
+  if (!options.includes(status)) {
+    throw new ApiError(400, "Invalid status")
+  };
+
+  const order = await prisma.order.findUnique({
+    where: {
+      id: Number(orderId),
+    }
+  });
+
+  if (!order) {
+    throw new ApiError(404, "Order not found")
+  };
+
+  const updatedOrder = await prisma.order.update({
+    where: {
+      id: order.id,
+    },
+    data: {
+      status,
+    },
+    include: {
+      items: {
+        include: {
+          product: true,
+        },
+      },
+    },
+  });
+
+  return res.status(200).json(
+    new ApiResponse(200, updatedOrder, "Order status updated successfully")
+  );
+})
+
+
+export { createOrder, getOrders, getOrderById, updateOrderStatus };
+
